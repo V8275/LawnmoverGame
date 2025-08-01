@@ -1,8 +1,15 @@
 using UnityEngine;
 using System.Collections;
 
-public class NPCBuyer : MonoBehaviour
+public class NPCBuyer : NPC
 {
+    [SerializeField]
+    private float Distance = 2f;
+    [SerializeField]
+    private GameObject BuyRadius;
+    [SerializeField]
+    private GameObject BuyerFX;
+
     private Vector3 waitPoint;
     private Vector3 endPoint;
     private int moneyToGive = 1;
@@ -10,7 +17,7 @@ public class NPCBuyer : MonoBehaviour
 
     private bool isWaiting = false;
 
-    private NPCBuyer nextNPC;
+    private NPC nextNPC;
     private NPCBuyerFactory factory;
 
     public void Init(Vector3 WaitPoint, Vector3 EndPoint,
@@ -32,7 +39,7 @@ public class NPCBuyer : MonoBehaviour
     {
         while (Vector3.Distance(transform.position, target) > 0.1f)
         {
-            if (nextNPC != null && Vector3.Distance(transform.position, nextNPC.transform.position) < 1f)
+            if (nextNPC != null && Vector3.Distance(transform.position, nextNPC.transform.position) < Distance)
             {
                 yield return null;
             }
@@ -45,6 +52,7 @@ public class NPCBuyer : MonoBehaviour
 
         if (target == waitPoint)
         {
+            BuyRadius.SetActive(true);
             isWaiting = true;
         }
         else if (target == endPoint)
@@ -54,23 +62,32 @@ public class NPCBuyer : MonoBehaviour
         }
     }
 
-    public void SetNextNPC(NPCBuyer npc)
+    public void SetPrevNPC(NPC npc)
     {
         nextNPC = npc;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (isWaiting && other.CompareTag("Player"))
         {
-            InventoryController playerInventory = other.GetComponent<InventoryController>();
-            if (playerInventory != null && playerInventory.GrassCount > 0)
-            {
-                playerInventory.GrassCount -= 1;
-                playerInventory.MoneyCount += moneyToGive;
-                isWaiting = false;
-                StartCoroutine(MoveToPoint(endPoint));
-            }
+            TradeAction(other.gameObject);
+        }
+    }
+
+    protected override void TradeAction(GameObject player)
+    {
+        InventoryController playerInventory = player.GetComponent<InventoryController>();
+        base.TradeAction(player);
+
+        if (playerInventory != null && playerInventory.GrassCount > 0)
+        {
+            playerInventory.GrassCount -= 1;
+            playerInventory.MoneyCount += moneyToGive;
+            isWaiting = false;
+            BuyRadius.SetActive(false);
+            Instantiate(BuyerFX, transform.position, transform.rotation);
+            StartCoroutine(MoveToPoint(endPoint));
         }
     }
 }

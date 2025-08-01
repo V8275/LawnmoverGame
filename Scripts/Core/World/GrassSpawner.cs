@@ -10,17 +10,23 @@ public class GrassSpawner : MonoBehaviour
     private int numberOfObjects = 10;
     [SerializeField]
     private float yOffset = 0.5f;
+    [SerializeField]
+    private float checkInterval = 5f;
+
+    private int initialObjectCount;
 
     void Start()
     {
+        initialObjectCount = numberOfObjects;
         PlaceObjectsOnMesh();
+        InvokeRepeating("CheckObjectCount", checkInterval, checkInterval);
     }
 
     private void PlaceObjectsOnMesh()
     {
         if (meshFilter == null || objectToPlace == null)
         {
-            Debug.LogError("MeshFilter or ObjectToPlace not assigned!");
+            Debug.LogError("MeshFilter или ObjectToPlace не назначены!");
             return;
         }
 
@@ -58,5 +64,18 @@ public class GrassSpawner : MonoBehaviour
         }
 
         return v1 + (v2 - v1) * r1 + (v3 - v1) * r2;
+    }
+
+    private void CheckObjectCount()
+    {
+        GameObject[] grassObjects = GameObject.FindGameObjectsWithTag("Grass");
+        int currentObjectCount = grassObjects.Length;
+
+        if (currentObjectCount < initialObjectCount * 0.5f)
+        {
+            int objectsToAdd = initialObjectCount - currentObjectCount;
+            numberOfObjects = objectsToAdd;
+            PlaceObjectsOnMesh();
+        }
     }
 }

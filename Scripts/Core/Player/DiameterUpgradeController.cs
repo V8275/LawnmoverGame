@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class DiameterUpgradeController : MonoBehaviour
 {
+    public event Action<bool> OnUpgrade;
+
     [SerializeField]
     private GrassLawnController grassLawnController;
     [SerializeField]
@@ -9,11 +12,21 @@ public class DiameterUpgradeController : MonoBehaviour
     [SerializeField]
     private UpgradesSO Upgrades;
 
-    private int upgradeCost = 0;
     private int currentlevel = 0;
 
-    public void UpgradeDiameter(int playerCoins = 0)
+    public void TriggerUpgrade(bool up)
     {
+        OnUpgrade?.Invoke(up);
+    }
+
+    public int UpgradeDiameter(int playerCoins = 0)
+    {
+        if (currentlevel >= Upgrades.levels.Length - 1)
+        {
+            Debug.Log("Достигнут максимальный уровень улучшения.");
+            return 0;
+        }
+
         var nextlevel = Upgrades.levels[currentlevel + 1];
 
         if (playerCoins >= nextlevel.cost)
@@ -22,12 +35,28 @@ public class DiameterUpgradeController : MonoBehaviour
 
             ScaleObjectToDiameter(nextlevel.diameter);
 
-            playerCoins -= upgradeCost;
+            currentlevel++;
+            TriggerUpgrade(true);
+
+            return nextlevel.cost;
         }
         else
         {
+            TriggerUpgrade(false);
             Debug.Log("Недостаточно монет для улучшения.");
+            return 0;
         }
+    }
+
+    public int NextCost()
+    {
+        if (currentlevel >= Upgrades.levels.Length - 1)
+        {
+            Debug.Log("Достигнут максимальный уровень улучшения.");
+            return 0;
+        }
+
+        return Upgrades.levels[currentlevel + 1].cost;
     }
 
     private void ScaleObjectToDiameter(float diameter)

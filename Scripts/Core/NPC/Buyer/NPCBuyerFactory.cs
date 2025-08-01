@@ -20,6 +20,8 @@ public class NPCBuyerFactory : MonoBehaviour
 
     private int currentNPCs = 0;
 
+    NPC prevNPC = null;
+
     void Start()
     {
         StartCoroutine(SpawnNPCs());
@@ -35,6 +37,10 @@ public class NPCBuyerFactory : MonoBehaviour
                 NPCBuyer npc = npcObj.GetComponent<NPCBuyer>();
                 npc.Init(waitPoint.position, endPoint.position, moneyToGive, Speed);
                 npc.SetFactory(this);
+                if(prevNPC)
+                    npc.SetPrevNPC(prevNPC);
+
+                prevNPC = npc;
 
                 currentNPCs++;
             }

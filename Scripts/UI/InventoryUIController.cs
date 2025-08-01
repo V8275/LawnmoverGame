@@ -44,4 +44,9 @@ public class InventoryUIController : MonoBehaviour
             moneyText.text = $"Δενόγθ: {newCount}";
         }
     }
+
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
 }
